@@ -24,3 +24,5 @@ namespace nn
 		Type type;
 	};
 }
+
+#include "ipc.h"

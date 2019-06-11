@@ -5,7 +5,7 @@ namespace nn::ncm
 	class IContentStorage
 	{
 	public:
-		IContentStorage(nn::ncm::ContentStorage&&);
+		IContentStorage(nn::ncm::IContentStorage&&);
 		IContentStorage(nn::sf::SharedPointer<nn::ncm::IContentStorage>);
 		IContentStorage();
 
