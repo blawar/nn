@@ -5,8 +5,96 @@
 #define IPC_MAX_BUFFERS 8
 #define IPC_MAX_OBJECTS 8
 
+#define SFCI_MAGIC 0x49434653
+#define SFCO_MAGIC 0x4f434653
+
 namespace nn
 {
+	class Response
+	{
+	public:
+		Result result()
+		{
+			return m_result;
+		}
+	protected:
+		u64 m_magic;
+		u64 m_result;
+	};
+
+	template<class A>
+	class ResponseV : public Response
+	{
+	public:
+		Result result(A* a)
+		{
+			*a = this->a;
+			return m_result;
+		}
+	protected:
+		A a;
+	};
+
+	template<u64 ID, class R>
+	class Request
+	{
+	public:
+		Request() : id(ID), magic(SFCI_MAGIC)
+		{
+		}
+
+		R send(const Service& service)
+		{
+			R response;
+			return response;
+		}
+
+		u64 magic;
+		u64 id;
+	};
+
+	template<u64 ID, class R, class A, class B, class C, class D>
+	class RequestVVVV : public Request<ID, R>
+	{
+	public:
+		A a;
+		B b;
+		C c;
+		D d;
+	};
+
+	template<u64 ID, class R, class A, class B, class C>
+	class RequestVVV : public Request<ID, R>
+	{
+	public:
+		A a;
+		B b;
+		C c;
+	};
+
+	template<u64 ID, class R, class A, class B>
+	class RequestVV : public Request<ID, R>
+	{
+	public:
+		RequestVV(const A& a, const B& b) : Request(), a(a), b(b)
+		{
+		}
+
+		A a;
+		B b;
+	};
+
+	template<u64 ID, class R, class A>
+	class RequestV : public Request<ID, R>
+	{
+	public:
+		RequestV(const A& a) : Request(), a(a)
+		{
+		}
+
+		A a;
+	};
+
 	class Ipc
 	{
 	public:
@@ -48,72 +136,7 @@ namespace nn
 
 			size_t NumObjectIds;
 			u32    ObjectIds[IPC_MAX_OBJECTS];
-		};
-
-		class IRequestBase
-		{
-		public:
-		protected:
-			class Header
-			{
-			public:
-			protected:
-				u64 magic;
-				u64 id;
-			};
-		};
-
-		template<class A>
-		class Request : public IRequest
-		{
-		public:
-		protected:
-			Header header;
-			A a;
-		};
-
-		template<class A, class B>
-		class Request : public IRequest
-		{
-		public:
-		protected:
-			Header header;
-			A a;
-			B b;
-		};
-
-		template<class A, class B, class C>
-		class Request : public IRequest
-		{
-		public:
-		protected:
-			Header header;
-			A a;
-			B b;
-			C c;
-		};
-
-		template<class A, class B, class C, class D
-		class Request : public IRequest
-		{
-		public:
-		protected:
-			Header header;
-			A a;
-			B b;
-			C c;
-			D d;
-		};
-
-		class Response
-		{
-		public:
-		};
-
-		class Response
-		{
-		public:
-		};
+		};		
 
 		const Command& command() const { return m_command; }
 		Command& command() { return m_command; }

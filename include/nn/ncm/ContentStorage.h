@@ -17,9 +17,9 @@ namespace nn::ncm
 		Result swap(nn::ncm::ContentStorage&);
 
 		Result CleanupAllPlaceHolder() override;
-		Result CreatePlaceHolder(nn::ncm::PlaceHolderId, nn::ncm::ContentId, s64) override;
+		Result CreatePlaceHolder(const PlaceHolderId& placeHolderId, const ContentId& contentId, const s64 size) override;
 		Result Delete(nn::ncm::ContentId) override;
-		Result DeletePlaceHolder(nn::ncm::PlaceHolderId) override;
+		Result DeletePlaceHolder(const PlaceHolderId& placeHolderId) override;
 		Result DisableForcibly() override;
 		Result FlushPlaceHolder() override;
 		Result GetContentCount(s32*) override;
