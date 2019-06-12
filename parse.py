@@ -1,4 +1,5 @@
 import os
+import json
 
 classes = {}
 
@@ -45,6 +46,65 @@ def addMethod(prototype):
 	except:
 		#raise
 		pass
+		
+class Argument:
+	def __init__(self, statement):
+		statement = statement.strip()
+		self.statement = statement
+		if statement.endswith('&&'):
+			self.rvalue = True
+			statement = statement[0:-2].strip()
+		else:
+			self.rvalue = False
+			
+		if statement.endswith('&'):
+			self.reference = True
+			statement = statement[0:-1].strip()
+		else:
+			self.reference = False
+			
+		if statement.endswith('*'):
+			self.pointer = True
+			statement = statement[0:-1].strip()
+		else:
+			self.pointer = False
+			
+		if statement.endswith(' const'):
+			self.const = True
+			statement = statement[0:-6].strip()
+		else:
+			self.const = False
+			
+		self.datatype = statement
+		
+		if self.datatype == 'long':
+			self.datatype = 's64'
+		elif self.datatype == 'ulong':
+			self.datatype = 'u64'
+		elif self.datatype == 'int':
+			self.datatype = 's32'
+		elif self.datatype == 'uint':
+			self.datatype = 'u32'
+		elif self.datatype == 'uchar':
+			self.datatype = 'u8'
+		
+	def __str__(self):
+		if self.const:
+			r = 'const ' + self.datatype
+		else:
+			r = self.datatype
+			
+		if self.pointer:
+			r += '*'
+			
+		if self.reference:
+			r += '&'
+			
+		if self.rvalue:
+			r += '&&'
+			
+		
+		return r
 
 class Method:
 	def __init__(self, prototype):
@@ -53,7 +113,8 @@ class Method:
 		self.parseArgs(prototype.split('(', 1)[1][0:-1])
 		
 	def generatePrototype(self, indent=0):
-		return '\t' * indent + str(self) + '(' + ', '.join(self.args) + ');'
+		#return '\t' * indent + str(self) + '(' + ', '.join(self.args) + ');'
+		return '\t' * indent + str(self) + '(' + ', '.join([str(a) for a in self.args]) + ');'
 		
 	def parseArgs(self, args):
 		self.args = []
@@ -62,7 +123,7 @@ class Method:
 		for c in args:
 			if inTemplate == 0 and c == ',':
 				if last != '':
-					self.args.append(last.srip())
+					self.args.append(Argument(last.strip()))
 					last = ''
 			else:
 				last += c
@@ -73,25 +134,30 @@ class Method:
 			
 				
 		if len(last) and last != 'void':
-			self.args.append(last.strip())
+			self.args.append(Argument(last.strip()))
 			
 		for a in self.args:
-			if a.startswith('nn::'):
-				getClass(a.split(' ')[0].strip('&'))
+			if a.datatype.startswith('nn::'):
+				getClass(a.datatype.split(' ')[0].strip('&'))
 			
 		
 	def __str__(self):
 		return self.base
+		
+	def serialize(self):
+		return str(self)
 
 class NS:
 	def __init__(self, prototype):
 		self.prototype = prototype
-		self.base = prototype.split('(')[0].split('::')[-1]
 		self.children = {}
 		self.methods = {}
 		
+	def base(self):
+		return self.prototype.split('(')[0].split('::')[-1]
+		
 	def __str__(self):
-		return self.base
+		return self.base()
 		
 	def headerPath(self):
 		return 'include/' + '/'.join(self.prototype.split('(')[0].split('::')) + '.h'
@@ -107,7 +173,7 @@ class NS:
 			c.print(depth+1)
 			
 		for key,m in self.methods.items():
-			print('\t' * (depth+1) + '*' + str(m) + ' ' + ', '.join(m.args))
+			print('\t' * (depth+1) + '*' + str(m) + ' ' + ', '.join([str(a) for a in m.args]))
 			
 	def definition(self, indent=0):
 		tabs = '\t' * indent
@@ -125,7 +191,10 @@ class NS:
 		content = (structs + '\n' + methods).strip()
 		if content:
 			content += '\n'
-		return f'{tabs}class {self.base}\n{tabs}{{\n' + content +  f'{tabs}}}\n'
+			
+		base = self.base()
+		
+		return f'{tabs}class {base}\n{tabs}{{\n' + content +  f'{tabs}}}\n'
 			
 	def generate(self):
 		self.createHeaderDir()
@@ -143,6 +212,21 @@ class NS:
 			
 	def __getitem__(self, key):
 		return self.children[key]
+		
+	def serialize(self):
+		o = {}
+		o['prototype'] = self.prototype
+		o['children'] = {}
+		o['methods'] = {}
+		 
+		for key,v in self.children.items():
+			o['children'][key] = v.serialize()
+			
+		for key,v in self.methods.items():
+			o['methods'][key] = v.serialize()
+			
+		return o
+		
 
 with open('symbols.txt') as f:
 	lines = f.read().split('\n')
@@ -176,8 +260,15 @@ for line in lines:
 		f.write('}\n')
 	'''
 
-#for name,c in classes.items():
-#	c.print()
-
+def save():
+	global classes
+	
+	o = {}
+	o['nn'] = classes['nn'].serialize()
+	
+	with open('classes.json', 'w') as outfile:
+		json.dump(o, outfile, indent=4)
+	
+save()
 classes['nn'].print()
 classes['nn'].generate()
