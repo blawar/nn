@@ -3,47 +3,54 @@
 #include "nn.h"
 #include "ncm.h"
 #include "ContentMetaKey.h"
+#include "IContentMetaDatabase.h"
 
 namespace nn::ncm
 {
-	class ContentMetaDatabase
+	class ContentMetaDatabase : public IContentMetaDatabase
 	{
 	public:
 		ContentMetaDatabase();
-		ContentMetaDatabase(nn::ncm::ContentMetaDatabase&& db);
-		ContentMetaDatabase(nn::sf::SharedPointer<nn::ncm::IContentMetaDatabase> db);
-		Result Commit();
+		ContentMetaDatabase(ContentMetaDatabase&& db);
+		ContentMetaDatabase(nn::sf::SharedPointer<IContentMetaDatabase> db);
+
+		Result Set(const ContentMetaKey& contentMetaKey, const void* buffer, const u64 size);
+		Result Get(u64* size, void* buffer, const u64 maxSize, const ContentMetaKey& contentMetaKey);
+		Result Remove(const ContentMetaKey& contentMetaKey);
+		Result GetContentIdByType(ContentId* contentId, const ContentMetaKey& contentMetaKey, const ContentType& contentType);
+		Result ListContentInfo(s32* size, ContentInfo* contentInfo, const s32 maxSize, const ContentMetaKey& contentMetaKey, s32 index);
+		Result GetLatest(ContentMetaKey* contentMetaKey, const u64 applicationId);
+		Result Has(bool* result, const ContentMetaKey& contentMetaKey);
+		Result HasAll(bool* result, const ContentMetaKey*, const s32 size);
+		Result GetSize(u64* size, const ContentMetaKey& contentMetaKey);
+		Result GetRequiredSystemVersion(u32* version, const ContentMetaKey& contentMetaKey);
+		Result GetPatchId(PatchId* patchId, const ContentMetaKey& contentMetaKey);
 		Result DisableForcibly();
-		Result Get(u64*, void*, u64, nn::ncm::ContentMetaKey const&);
-		Result GetAttributes(u8*, nn::ncm::ContentMetaKey const&);
-		Result GetContentIdByType(nn::ncm::ContentId*, nn::ncm::ContentMetaKey const&, nn::ncm::ContentType);
-		Result GetContentIdByTypeAndIdOffset(nn::ncm::ContentId*, nn::ncm::ContentMetaKey const&, nn::ncm::ContentType, u8);
-		Result GetControl(nn::ncm::ContentId*, nn::ncm::ApplicationId, u32);
-		Result GetHtmlDocument(nn::ncm::ContentId*, nn::ncm::ApplicationId, u32);
-		Result GetLatest(nn::ncm::ContentMetaKey*, u64);
-		Result GetLatestControl(nn::ncm::ContentId*, nn::ncm::ApplicationId);
-		Result GetLatestData(nn::ncm::ContentId*, nn::ncm::DataId);
-		Result GetLatestHtmlDocument(nn::ncm::ContentId*, nn::ncm::ApplicationId);
-		Result GetLatestLegalInformation(nn::ncm::ContentId*, nn::ncm::ApplicationId);
-		Result GetLatestProgram(nn::ncm::ContentId*, nn::ncm::ProgramId);
-		Result GetLegalInformation(nn::ncm::ContentId*, nn::ncm::ApplicationId, u32);
-		Result GetPatchId(nn::ncm::PatchId*, nn::ncm::ContentMetaKey const&);
-		Result GetProgram(nn::ncm::ContentId*, nn::ncm::ProgramId, u32);
-		Result GetRequiredApplicationVersion(u32*, nn::ncm::ContentMetaKey const&);
-		Result GetRequiredSystemVersion(u32*, nn::ncm::ContentMetaKey const&);
-		Result GetSize(u64*, nn::ncm::ContentMetaKey const&);
-		Result Has(bool*, nn::ncm::ContentMetaKey const&);
-		Result HasAll(bool*, nn::ncm::ContentMetaKey const*, s32);
-		Result HasContent(bool*, nn::ncm::ContentMetaKey const&, nn::ncm::ContentId const&);
-		Result ListContentInfo(s32*, nn::ncm::ContentInfo*, s32, nn::ncm::ContentMetaKey const&, s32);
-		Result ListContentMetaInfo(s32*, nn::ncm::ContentMetaInfo*, s32, nn::ncm::ContentMetaKey const&, s32);
-		Result LookupOrphanContent(bool*, nn::ncm::ContentId const*, s32);
-		Result Remove(nn::ncm::ApplicationId, u32);
-		Result Remove(nn::ncm::ContentMetaKey);
-		Result Remove(nn::ncm::SystemDataId, u32);
-		Result Remove(nn::ncm::SystemProgramId, u32);
-		Result Set(nn::ncm::ContentMetaKey const&, void const*, u64);
-		Result operator=(nn::ncm::ContentMetaDatabase&&);
-		Result swap(nn::ncm::ContentMetaDatabase&);
+		Result LookupOrphanContent(bool* result, const ContentId*, s32 size);
+		Result Commit();
+		Result HasContent(bool* result, const ContentMetaKey& contentMetaKey, const ContentId& contentId);
+		Result ListContentMetaInfo(s32* size, ContentMetaInfo* contentMetaInfos, const s32 maxSize, const ContentMetaKey& contentMetaKey, const s32 offset);
+		Result GetAttributes(u8* attributes, const ContentMetaKey& contentMetaKey);
+		Result GetRequiredApplicationVersion(u32* version, const ContentMetaKey& contentMetaKey);
+		Result GetContentIdByTypeAndIdOffset(ContentId* contentId, const ContentMetaKey& contentMetaKey, const ContentType contentType, const u8 offset);
+
+
+		Result GetControl(ContentId*, ApplicationId, u32);
+		Result GetHtmlDocument(ContentId*, ApplicationId, u32);
+		Result GetLatestControl(ContentId*, ApplicationId);
+		Result GetLatestData(ContentId*, DataId);
+		Result GetLatestHtmlDocument(ContentId*, ApplicationId);
+		Result GetLatestLegalInformation(ContentId*, ApplicationId);
+		Result GetLatestProgram(ContentId*, ProgramId);
+		Result GetLegalInformation(ContentId*, ApplicationId, u32);
+		
+		Result GetProgram(ContentId*, ProgramId, u32);
+		
+		
+		Result Remove(ApplicationId, u32);
+		Result Remove(SystemDataId, u32);
+		Result Remove(SystemProgramId, u32);
+		Result operator=(ContentMetaDatabase&&);
+		Result swap(ContentMetaDatabase&);
 	};
 }
