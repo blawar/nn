@@ -23,6 +23,19 @@ namespace nn
 	};
 
 	template<class A>
+	class ResponseS : public Response
+	{
+	public:
+		Result result(A* a)
+		{
+			//*a = this->a;
+			return m_result;
+		}
+	protected:
+		A a;
+	};
+
+	template<class A>
 	class ResponseV : public Response
 	{
 	public:

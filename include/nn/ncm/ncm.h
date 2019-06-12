@@ -81,6 +81,16 @@ namespace nn::ncm
 		 AddOnContent = 0x82,
 		 Delta = 0x83,
 	 };
+
+	 enum class StorageId
+	 {
+		 None = 0,
+		 Host = 1,
+		 GameCard = 2,
+		 NandSystem = 3,
+		 NandUser = 4,
+		 SdCard = 5
+	 };
 }
 
 #include "IContentMetaDatabase.h"
@@ -88,3 +98,11 @@ namespace nn::ncm
 
 #include "IContentStorage.h"
 #include "ContentStorage.h"
+
+namespace nn::ncm
+{
+	static Result OpenContentMetaDatabase(ContentMetaDatabase*, const StorageId storageId);
+	static Result OpenContentStorage(ContentStorage*, const StorageId storageId);
+
+	static Service service();
+}
