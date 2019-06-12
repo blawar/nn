@@ -29,10 +29,10 @@ def getClass(path):
 		return None
 		
 		
-def addMethod(prototype):
+def addMethod(name):
 	try:
-		path = prototype.split('(')[0]
-		args = prototype.split('(')[1]
+		path = name.split('(')[0]
+		args = name.split('(')[1]
 		
 		if '<' in path:
 			return None
@@ -42,13 +42,14 @@ def addMethod(prototype):
 		c = getClass('::'.join(bits[0:-1]).strip('::'))
 		
 		if c:
-			c.methods[prototype] = Method(prototype)
+			c.methods[name] = Method(name)
 	except:
 		#raise
 		pass
 		
 class Argument:
 	def __init__(self, statement):
+		self.name = None
 		statement = statement.strip()
 		self.statement = statement
 		if statement.endswith('&&'):
@@ -105,12 +106,19 @@ class Argument:
 			
 		
 		return r
+		
+	def serialize(self):
+		o = {}
+		return {'name': self.name, 'datatype': self.datatype, 'const': self.const, 'pointer': self.pointer, 'reference': self.reference, 'rvalue': self.rvalue}
 
 class Method:
 	def __init__(self, prototype):
 		self.prototype = prototype
-		self.base = prototype.split('(')[0].split('::')[-1]
+		self.cmd = None
 		self.parseArgs(prototype.split('(', 1)[1][0:-1])
+		
+	def base(self):
+		return self.prototype.split('(')[0].split('::')[-1]
 		
 	def generatePrototype(self, indent=0):
 		#return '\t' * indent + str(self) + '(' + ', '.join(self.args) + ');'
@@ -142,28 +150,36 @@ class Method:
 			
 		
 	def __str__(self):
-		return self.base
+		return self.base()
 		
 	def serialize(self):
-		return str(self)
+		o = {}
+		o['prototype'] = self.prototype
+		o['cmd'] = self.cmd
+		o['args'] = []
+		for a in self.args:
+			o['args'].append(a.serialize())
+		return o
 
 class NS:
-	def __init__(self, prototype):
-		self.prototype = prototype
+	def __init__(self, name):
+		self.name = name
+		self.type = None
+		self.size = None
 		self.children = {}
 		self.methods = {}
 		
 	def base(self):
-		return self.prototype.split('(')[0].split('::')[-1]
+		return self.name.split('(')[0].split('::')[-1]
 		
 	def __str__(self):
 		return self.base()
 		
 	def headerPath(self):
-		return 'include/' + '/'.join(self.prototype.split('(')[0].split('::')) + '.h'
+		return 'include/' + '/'.join(self.name.split('(')[0].split('::')) + '.h'
 		
 	def createHeaderDir(self):
-		path = 'include/' + '/'.join(self.prototype.split('(')[0].split('::')[0:-1])
+		path = 'include/' + '/'.join(self.name.split('(')[0].split('::')[0:-1])
 		os.makedirs(path, exist_ok=True)
 		
 		
@@ -215,7 +231,9 @@ class NS:
 		
 	def serialize(self):
 		o = {}
-		o['prototype'] = self.prototype
+		o['name'] = self.name
+		o['type'] = self.type
+		o['size'] = self.size
 		o['children'] = {}
 		o['methods'] = {}
 		 
