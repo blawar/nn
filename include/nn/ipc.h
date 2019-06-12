@@ -35,6 +35,21 @@ namespace nn
 		A a;
 	};
 
+	template<class A, class B>
+	class ResponseVV : public Response
+	{
+	public:
+		Result result(A* a, B* b)
+		{
+			*a = this->a;
+			*b = this->b;
+			return m_result;
+		}
+	protected:
+		A a;
+		B b;
+	};
+
 	template<u64 ID, class R>
 	class Request
 	{
@@ -47,6 +62,16 @@ namespace nn
 		{
 			R response;
 			return response;
+		}
+
+		Request& in(const void* buffer, const u64 size)
+		{
+			return *this;
+		}
+
+		Request& out(const void* buffer, const u64 size)
+		{
+			return *this;
 		}
 
 		u64 magic;
@@ -67,6 +92,10 @@ namespace nn
 	class RequestVVV : public Request<ID, R>
 	{
 	public:
+		RequestVVV(const A& a, const B& b, const C& c) : Request(), a(a), b(b), c(c)
+		{
+		}
+
 		A a;
 		B b;
 		C c;
